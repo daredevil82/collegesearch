@@ -13,5 +13,5 @@ Vagrant.configure("2") do |config|
     vb.name = "dev.collegesearch.co"
   end
 
-  # config.vm.provision "shell", path: "provision/install.sh"
+  config.vm.provision "shell", path: "provision/install.sh"
 end
