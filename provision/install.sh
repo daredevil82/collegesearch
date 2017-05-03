@@ -108,7 +108,8 @@ PROJECT_HOME=/home/vagrant/$PROJECT_NAME
 source /usr/local/bin/virtualenvwrapper.sh
 source $BASH_RC
 
-# mkvirtualenv -p "/usr/bin/python3.6" --clear -a "/home/vagrant/project" $PROJECT_NAME
-#mkvirtualenv -p "/usr/bin/python3.5" -r "/home/vagrant/project/requirements.txt" -a "/home/vagrant/project" $PROJECT_NAME
+chown -R vagrant:vagrant $WORKON_HOME
+
+mkvirtualenv -p "/usr/bin/python3.6" --clear -a "/home/vagrant/project" $PROJECT_NAME -r /home/vagrant/project/requirements.txt
 
 npm install -g create-react-app

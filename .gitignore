@@ -1,3 +1,4 @@
 .idea
 .vagrant
 collegesearch/collegesearch/__pycache__
+collegesearch/collegesearch/settings/local.py
