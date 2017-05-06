@@ -83,7 +83,7 @@ class Institution(models.Model):
         (-2, 'Not Applicable')
     )
 
-    unitid = models.IntegerField(help_text = 'Institution unit ID')
+    unitid = models.IntegerField(help_text = 'Institution unit ID', unique = True)
     name = models.CharField(max_length = 100, default = '', db_index = True, help_text = 'Institution name')
     address = models.CharField(max_length = 100, default = '', help_text = 'Address of institution')
     city = models.CharField(max_length = 50, default = '', help_text = 'City of institution')
@@ -109,8 +109,19 @@ class Institution(models.Model):
         return 'Name: [{}] State: [{}] Enrollment [{}]'.format(self.name, self.state, self.instsize)
 
 
+class BaseTuition(models.Model):
+    institution = models.ForeignKey(Institution, related_name = 'tuitions', related_query_name = 'tuition')
+    academic_year_2013_books = models.IntegerField(default = -1, help_text = '2013 academic year books and supplies')
+    academic_year_2014_books = models.IntegerField(default = -1, help_text = '2014 academic year books and supplies')
+    academic_year_2015_books = models.IntegerField(default = -1, help_text = '2015 academic year books and supplies')
+    academic_year_2013_board = models.IntegerField(default = -1, help_text = '2013 academic year on-campus room and board')
+    academic_year_2014_board = models.IntegerField(default = -1, help_text = '2014 academic year on-campus room and board')
+    academic_year_2015_board = models.IntegerField(default = -1, help_text = '2015 academic year on-campus room and board')
 
-class Tuition(models.Model):
+    class Meta:
+        abstract = True
+
+class Tuition(BaseTuition):
     # from ic2015_ay
 
     TUITION_CLASSES = (
@@ -120,31 +131,21 @@ class Tuition(models.Model):
         (-1, 'Not Applicable')
     )
 
-    institution = models.ForeignKey(Institution)
     tuition_class = models.IntegerField(default = -1, choices = TUITION_CLASSES, help_text = 'Tuition rates of student origin')
     cost = models.IntegerField(default = -1, help_text = 'List price for annual tuition')
     fees = models.IntegerField(default = -1, help_text = 'List price for annual fees - full time enrollment')
     credit_hour = models.IntegerField(default = -1, help_text = 'List price of credit hour cost')
-    cost_fees = models.IntegerField(default = -1, help_text = 'Tuition and fees')
-    book_cost = models.IntegerField(default = -1, help_text = 'Cost of books and supplies')
-    room_board_cost = models.IntegerField(default = -1, help_text = 'Cost of on-campus room and board')
     academic_year_2013_cost = models.IntegerField(default = -1, help_text = '2013 academic year cost and fees')
     academic_year_2014_cost = models.IntegerField(default = -1, help_text = '2014 academic year cost and fees')
     academic_year_2015_cost = models.IntegerField(default = -1, help_text = '2015 academic year cost and fees')
-    academic_year_2013_books = models.IntegerField(default = -1, help_text = '2013 academic year books and supplies')
-    academic_year_2014_books = models.IntegerField(default = -1, help_text = '2014 academic year books and supplies')
-    academic_year_2015_books = models.IntegerField(default = -1, help_text = '2015 academic year books and supplies')
-    academic_year_2013_board = models.IntegerField(default = -1, help_text = '2013 academic year on-campus room and board')
-    academic_year_2014_board = models.IntegerField(default = -1, help_text = '2013 academic year on-campus room and board')
-    academic_year_2015_board = models.IntegerField(default = -1, help_text = '2014 academic year on-campus room and board')
 
     def __str__(self):
         return '{} [class: [{}]] [list cost: [{}]]'.format(self.institution.name, self.tuition_class ,self.cost)
 
 
-class Scores(models.Model):
+class Admissions(models.Model):
     # From adm2015
-    institution = models.ForeignKey(Institution)
+    institution = models.OneToOneField(Institution)
     total_applicants = models.IntegerField(default = -1, help_text = 'Total number of applicants')
     male_applicants = models.IntegerField(default = -1, help_text = 'Total number of male applicants')
     female_applicants = models.IntegerField(default = -1, help_text = 'Total number of female applicants')
@@ -164,6 +165,22 @@ class Scores(models.Model):
     pt_enrollment = models.IntegerField(default = -1, help_text = 'Total part-time enrollment')
     pt_male_enrollment = models.IntegerField(default = -1, help_text = 'Total male part-time enrollment')
     pt_female_enrollment = models.IntegerField(default = -1, help_text = 'Total female part-time enrollment')
+
+    sat_reading_25 = models.IntegerField(default = -1, help_text = 'SAT critical reading 25th percentile')
+    sat_reading_75 = models.IntegerField(default = -1, help_text = 'SAT critical reading 75th percentile')
+    sat_math_25 = models.IntegerField(default = -1, help_text = 'SAT math 25th percentile')
+    sat_math_75 = models.IntegerField(default = -1, help_text = 'SAT math 75th percentile')
+    sat_writing_25 = models.IntegerField(default = -1, help_text = 'SAT writing 25th percentile')
+    sat_writing_75 = models.IntegerField(default = -1, help_text = 'SAT writing 75th percentile')
+
+    act_composite_25 = models.IntegerField(default = -1, help_text = 'ACT composite 25th percentile')
+    act_composite_75 = models.IntegerField(default = -1, help_text = 'ACT composite 75th percentile')
+    act_english_25 = models.IntegerField(default = -1, help_text = 'ACT english 25th percentile')
+    act_english_75 = models.IntegerField(default = -1, help_text = 'ACT english 75th percentile')
+    act_math_25 = models.IntegerField(default = -1, help_text = 'ACT math 25th percentile')
+    act_math_75 = models.IntegerField(default = -1, help_text = 'ACT math 75th percentile')
+    act_writing_25 = models.IntegerField(default = -1, help_text = 'ACT writing 25th percentile')
+    act_writing_75 = models.IntegerField(default = -1, help_text = 'ACT writing 75th percentile')
 
     def __str__(self):
         return '{} [applicants: [{}]]'.format(self.institution.name, self.total_applicants)
