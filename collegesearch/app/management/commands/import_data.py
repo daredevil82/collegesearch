@@ -6,8 +6,9 @@ from io import TextIOWrapper
 
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 
-from app.models import Institution, Admissions, Tuition
+from app.models import AliasTitle, Institution, Admissions, Tuition, CIP, Completions
 
 
 class Command(BaseCommand):
@@ -16,7 +17,7 @@ class Command(BaseCommand):
     def __init__(self):
         super().__init__(self)
         self.datasets = {
-            'education': ('HD2015', 'ADM2015', 'IC2015_AY')
+            'education': ('HD2015', 'ADM2015', 'IC2015_AY', 'C2015_A')
         }
 
     def handle_characteristics(self, reader):
@@ -210,6 +211,39 @@ class Command(BaseCommand):
             print('Unicode error')
             print(e)
 
+    def handle_completions(self, reader):
+        print('Importing completions data')
+        next(reader)
+
+        try:
+            for idx, row in enumerate(reader):
+
+                try:
+                    institution = Institution.objects.get(unitid = self.safe_cast(row[0]))
+                    cip = CIP.objects.get(cip_code = row[1])
+
+                    completion = Completions.objects.create(institution = institution,
+                                                            cip = cip,
+                                                            award_level = self.safe_cast(row[3]),
+                                                            total_awards = self.safe_cast(row[5]),
+                                                            total_awards_male = self.safe_cast(row[7]),
+                                                            total_awards_female = self.safe_cast(row[9])
+                                                            )
+
+                except (Institution.DoesNotExist, CIP.DoesNotExist) as e:
+                    print('DoesNotExist row [{}]'.format(idx))
+                    print(e)
+                except CIP.MultipleObjectsReturned as e:
+                    print('CIP Multiple Objects Returned row [{}]'.format(idx))
+                    print(e)
+
+                if (idx + 1) % 100 == 0:
+                    print('[{}] completions processed'.format(idx + 1))
+
+        except UnicodeDecodeError as e:
+            print('Unicode error')
+            print(e)
+
     def safe_cast(self, val):
         # TODO is there a way to pass type in to be cased, to make this very generic?
         try:
@@ -217,9 +251,32 @@ class Command(BaseCommand):
         except:
             return 0
 
-    def handle(self, *args, **options):
-        print('Clearing database')
-        Institution.objects.all().delete()
+    def import_cip(self):
+        current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        dataset_file = os.path.join(current_path, '../../../data/cip_occupational_crosswalk.csv')
+        with open(dataset_file, mode = 'r', encoding = 'latin-1') as f:
+            reader = csv.reader(f, delimiter=',', quotechar='"')
+            next(reader)
+
+            for idx, row in enumerate(reader):
+                cip, created = CIP.objects.get_or_create(cip_code = row[8])
+
+                if created:
+                    cip.census_code = self.safe_cast(row[0])
+                    cip.census_occupation_title = row[1]
+                    cip.bls_code = row[2]
+                    cip.bls_occupation_title = row[3]
+                    cip.cip_occupation_title = row[9]
+
+                else:
+                    if not AliasTitle.objects.filter(alias_title = row[9]).exists():
+                        print('Creating Alias for CIP [{}]: [{}]'.format(row[8], row[9]))
+                        AliasTitle.objects.create(cip = cip, alias_title = row[9])
+
+                if (idx + 1) % 100 == 0:
+                    print('[{}] CIP records processed'.format(idx + 1))
+
+    def import_data(self):
 
         current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         dataset_path = os.path.join(current_path, '../../../data')
@@ -236,8 +293,21 @@ class Command(BaseCommand):
                         self.handle_tuition(reader)
                     elif dataset == 'adm2015':
                         self.handle_admissions(reader)
+                    elif dataset == 'c2015_a':
+                        self.handle_completions(reader)
 
         print('Completed import')
         print('Institution record count: [{}]'.format(Institution.objects.all().count()))
         print('Admissions record count: [{}]'.format(Admissions.objects.all().count()))
         print('Tuition record count: [{}]'.format(Tuition.objects.all().count()))
+        print('Completions record count: [{}]'.format(Completions.objects.all().count()))
+
+
+    def handle(self, *args, **options):
+        print('Clearing database')
+        Institution.objects.all().delete()
+        CIP.objects.all().delete()
+        self.import_cip()
+        self.import_data()
+
+
