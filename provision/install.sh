@@ -77,6 +77,7 @@ cat << EOF | sudo su - postgres -c psql
 CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS' SUPERUSER CREATEDB;
 
 CREATE DATABASE $PROJECT_NAME WITH OWNER=$DB_USER LC_COLLATE='en_US.utf8' LC_CTYPE='en_US.utf8' ENCODING='UTF8' TEMPLATE=template0;
+CREATE DATABASE test_$PROJECT_NAME WITH OWNER=$DB_USER LC_COLLATE='en_US.utf8' LC_CTYPE='en_US.utf8' ENCODING='UTF8' TEMPLATE=template0;
 EOF
 
 echo "Adding the following extensions:"
@@ -113,3 +114,5 @@ chown -R vagrant:vagrant $WORKON_HOME
 mkvirtualenv -p "/usr/bin/python3.6" --clear -a "/home/vagrant/project" $PROJECT_NAME -r /home/vagrant/project/requirements.txt
 
 npm install -g create-react-app
+
+mkdir -p "/home/vagrant/project/logs"
