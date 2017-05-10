@@ -2,7 +2,7 @@ from rest_framework import serializers
 from drf_extra_fields.geo_fields import PointField
 from drf_extra_fields.relations import PresentablePrimaryKeyRelatedField
 
-from app.models import Institution, Admissions, Tuition, Completions, CIP, AliasTitle
+from app.models import Institution, Admission, Tuition, Completion, Crosswalk, AliasTitle
 
 
 class DynamicDepthSerializer(serializers.ModelSerializer):
@@ -32,20 +32,20 @@ class TuitionSerializer(serializers.ModelSerializer):
 
 class CIPSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CIP
+        model = Crosswalk
         fields = '__all__'
 
 class CompletionsSerializer(serializers.ModelSerializer):
     cip = CIPSerializer()
 
     class Meta:
-        model = Completions
+        model = Completion
         fields = '__all__'
 
 class AdmissionsSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Admissions
+        model = Admission
         fields = '__all__'
 
 

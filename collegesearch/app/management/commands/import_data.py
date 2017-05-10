@@ -5,10 +5,9 @@ import zipfile
 from io import TextIOWrapper
 
 from django.contrib.gis.geos import Point
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Q
+from django.core.management.base import BaseCommand
 
-from app.models import AliasTitle, Institution, Admissions, Tuition, CIP, Completions
+from app.models import AliasTitle, Institution, Admission, Tuition, Crosswalk, Completion
 
 
 class Command(BaseCommand):
@@ -173,36 +172,36 @@ class Command(BaseCommand):
         try:
             for idx, row in enumerate(reader):
                 institution = Institution.objects.get(unitid = self.safe_cast(row[0]))
-                admissions = Admissions.objects.create(institution = institution,
-                                                       total_applicants = self.safe_cast(row[column_indices[0]]),
-                                                       male_applicants = self.safe_cast(row[column_indices[1]]),
-                                                       female_applicants = self.safe_cast(row[column_indices[2]]),
-                                                       total_admissions = self.safe_cast(row[column_indices[3]]),
-                                                       male_admissions = self.safe_cast(row[column_indices[4]]),
-                                                       female_admissions = self.safe_cast(row[column_indices[5]]),
-                                                       total_enrollment = self.safe_cast(row[column_indices[6]]),
-                                                       male_enrollment = self.safe_cast(row[column_indices[7]]),
-                                                       female_enrollment = self.safe_cast(row[column_indices[8]]),
-                                                       ft_enrollment = self.safe_cast(row[column_indices[9]]),
-                                                       ft_male_enrollment = self.safe_cast(row[column_indices[10]]),
-                                                       ft_female_enrollment = self.safe_cast(row[column_indices[11]]),
-                                                       pt_enrollment = self.safe_cast(row[column_indices[12]]),
-                                                       pt_male_enrollment = self.safe_cast(row[column_indices[13]]),
-                                                       pt_female_enrollment = self.safe_cast(row[column_indices[14]]),
-                                                       sat_reading_25 = self.safe_cast(row[column_indices[15]]),
-                                                       sat_reading_75 = self.safe_cast(row[column_indices[16]]),
-                                                       sat_math_25 = self.safe_cast(row[column_indices[17]]),
-                                                       sat_math_75 = self.safe_cast(row[column_indices[18]]),
-                                                       sat_writing_25 = self.safe_cast(row[column_indices[19]]),
-                                                       sat_writing_75 = self.safe_cast(row[column_indices[20]]),
-                                                       act_composite_25 = self.safe_cast(row[column_indices[21]]),
-                                                       act_composite_75 = self.safe_cast(row[column_indices[22]]),
-                                                       act_english_25 = self.safe_cast(row[column_indices[23]]),
-                                                       act_english_75 = self.safe_cast(row[column_indices[24]]),
-                                                       act_math_25 = self.safe_cast(row[column_indices[25]]),
-                                                       act_math_75 = self.safe_cast(row[column_indices[26]]),
-                                                       act_writing_25 = self.safe_cast(row[column_indices[27]]),
-                                                       act_writing_75 = self.safe_cast(row[column_indices[28]]))
+                admissions = Admission.objects.create(institution = institution,
+                                                      total_applicants = self.safe_cast(row[column_indices[0]]),
+                                                      male_applicants = self.safe_cast(row[column_indices[1]]),
+                                                      female_applicants = self.safe_cast(row[column_indices[2]]),
+                                                      total_admissions = self.safe_cast(row[column_indices[3]]),
+                                                      male_admissions = self.safe_cast(row[column_indices[4]]),
+                                                      female_admissions = self.safe_cast(row[column_indices[5]]),
+                                                      total_enrollment = self.safe_cast(row[column_indices[6]]),
+                                                      male_enrollment = self.safe_cast(row[column_indices[7]]),
+                                                      female_enrollment = self.safe_cast(row[column_indices[8]]),
+                                                      ft_enrollment = self.safe_cast(row[column_indices[9]]),
+                                                      ft_male_enrollment = self.safe_cast(row[column_indices[10]]),
+                                                      ft_female_enrollment = self.safe_cast(row[column_indices[11]]),
+                                                      pt_enrollment = self.safe_cast(row[column_indices[12]]),
+                                                      pt_male_enrollment = self.safe_cast(row[column_indices[13]]),
+                                                      pt_female_enrollment = self.safe_cast(row[column_indices[14]]),
+                                                      sat_reading_25 = self.safe_cast(row[column_indices[15]]),
+                                                      sat_reading_75 = self.safe_cast(row[column_indices[16]]),
+                                                      sat_math_25 = self.safe_cast(row[column_indices[17]]),
+                                                      sat_math_75 = self.safe_cast(row[column_indices[18]]),
+                                                      sat_writing_25 = self.safe_cast(row[column_indices[19]]),
+                                                      sat_writing_75 = self.safe_cast(row[column_indices[20]]),
+                                                      act_composite_25 = self.safe_cast(row[column_indices[21]]),
+                                                      act_composite_75 = self.safe_cast(row[column_indices[22]]),
+                                                      act_english_25 = self.safe_cast(row[column_indices[23]]),
+                                                      act_english_75 = self.safe_cast(row[column_indices[24]]),
+                                                      act_math_25 = self.safe_cast(row[column_indices[25]]),
+                                                      act_math_75 = self.safe_cast(row[column_indices[26]]),
+                                                      act_writing_25 = self.safe_cast(row[column_indices[27]]),
+                                                      act_writing_75 = self.safe_cast(row[column_indices[28]]))
 
                 if (idx + 1) % 100 == 0:
                     print('[{}] admission rows processed'.format(idx + 1))
@@ -220,20 +219,23 @@ class Command(BaseCommand):
 
                 try:
                     institution = Institution.objects.get(unitid = self.safe_cast(row[0]))
-                    cip = CIP.objects.get(cip_code = row[1])
+                    crosswalk, created = Crosswalk.objects.get_or_create(cip_code = row[1])
 
-                    completion = Completions.objects.create(institution = institution,
-                                                            cip = cip,
-                                                            award_level = self.safe_cast(row[3]),
-                                                            total_awards = self.safe_cast(row[5]),
-                                                            total_awards_male = self.safe_cast(row[7]),
-                                                            total_awards_female = self.safe_cast(row[9])
-                                                            )
+                    if created:
+                        print('Created new CIP code [{}]'.format(row[1]))
 
-                except (Institution.DoesNotExist, CIP.DoesNotExist) as e:
+                    completion = Completion.objects.create(institution = institution,
+                                                           crosswalk = crosswalk,
+                                                           award_level = self.safe_cast(row[3]),
+                                                           total_awards = self.safe_cast(row[5]),
+                                                           total_awards_male = self.safe_cast(row[7]),
+                                                           total_awards_female = self.safe_cast(row[9])
+                                                           )
+
+                except (Institution.DoesNotExist, Crosswalk.DoesNotExist) as e:
                     print('DoesNotExist row [{}]'.format(idx))
                     print(e)
-                except CIP.MultipleObjectsReturned as e:
+                except Crosswalk.MultipleObjectsReturned as e:
                     print('CIP Multiple Objects Returned row [{}]'.format(idx))
                     print(e)
 
@@ -251,7 +253,7 @@ class Command(BaseCommand):
         except:
             return 0
 
-    def import_cip(self):
+    def import_crosswalk(self):
         current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         dataset_file = os.path.join(current_path, '../../../data/cip_occupational_crosswalk.csv')
         with open(dataset_file, mode = 'r', encoding = 'latin-1') as f:
@@ -259,19 +261,24 @@ class Command(BaseCommand):
             next(reader)
 
             for idx, row in enumerate(reader):
-                cip, created = CIP.objects.get_or_create(cip_code = row[8])
+                crosswalk, created = Crosswalk.objects.get_or_create(cip_code = row[8])
 
                 if created:
-                    cip.census_code = self.safe_cast(row[0])
-                    cip.census_occupation_title = row[1]
-                    cip.bls_code = row[2]
-                    cip.bls_occupation_title = row[3]
-                    cip.cip_occupation_title = row[9]
+                    crosswalk.census_code = self.safe_cast(row[0])
+                    crosswalk.census_occupation_title = row[1]
+                    crosswalk.bls_code = row[2]
+                    crosswalk.bls_occupation_title = row[3]
+                    crosswalk.cip_occupation_title = row[9]
 
                 else:
+                    crosswalk.census_code = self.safe_cast(row[0])
+                    crosswalk.bls_code = row[2]
+
                     if not AliasTitle.objects.filter(alias_title = row[9]).exists():
                         print('Creating Alias for CIP [{}]: [{}]'.format(row[8], row[9]))
-                        AliasTitle.objects.create(cip = cip, alias_title = row[9])
+                        AliasTitle.objects.create(crosswalk = crosswalk, alias_title = row[9])
+
+                crosswalk.save()
 
                 if (idx + 1) % 100 == 0:
                     print('[{}] CIP records processed'.format(idx + 1))
@@ -298,16 +305,16 @@ class Command(BaseCommand):
 
         print('Completed import')
         print('Institution record count: [{}]'.format(Institution.objects.all().count()))
-        print('Admissions record count: [{}]'.format(Admissions.objects.all().count()))
+        print('Admissions record count: [{}]'.format(Admission.objects.all().count()))
         print('Tuition record count: [{}]'.format(Tuition.objects.all().count()))
-        print('Completions record count: [{}]'.format(Completions.objects.all().count()))
+        print('Completions record count: [{}]'.format(Completion.objects.all().count()))
 
 
     def handle(self, *args, **options):
         print('Clearing database')
         Institution.objects.all().delete()
-        CIP.objects.all().delete()
-        self.import_cip()
+        Crosswalk.objects.all().delete()
+        self.import_crosswalk()
         self.import_data()
 
 

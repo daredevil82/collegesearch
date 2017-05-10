@@ -143,7 +143,7 @@ class Tuition(BaseTuition):
         return '{} [class: [{}]] [list cost: [{}]]'.format(self.institution.name, self.tuition_class ,self.cost)
 
 
-class Admissions(models.Model):
+class Admission(models.Model):
     # From adm2015
     institution = models.OneToOneField(Institution)
     total_applicants = models.IntegerField(default = -1, help_text = 'Total number of applicants')
@@ -186,21 +186,28 @@ class Admissions(models.Model):
         return '{} [applicants: [{}]]'.format(self.institution.name, self.total_applicants)
 
 
-class CIP(models.Model):
+class Crosswalk(models.Model):
+    """
+    A crosswalk between IPEDS, Bureau of Labor and Office of Management and Budget classification
+    codes and occupation titles
+    """
     census_code = models.IntegerField(default = -1, help_text = 'Census 2000 occupation code')
-    census_occupation_title = models.CharField(default = '', db_index = True, max_length = 200, help_text = 'Census Occupation Title')
-    bls_code = models.CharField(default = '', db_index = True, max_length = 100, help_text = 'Bureau of Labor Code')
-    bls_occupation_title = models.CharField(default = '', db_index = True, max_length = 200, help_text = 'Bureau of Labor occupation title')
-    ombsoc_code = models.CharField(default = '', db_index = True, max_length = 100, help_text = 'OMB Standard Occupation Classification code')
-    ombsoc_occupation_title = models.CharField(default = '', db_index = True, max_length = 200, help_text = 'OMB Standard Occupation Classification title')
-    cip_code = models.CharField(default = '', db_index = True, max_length = 100, help_text = 'CIP code')
-    cip_occupation_title = models.CharField(default = '', db_index = True, max_length = 200,help_text = 'CIP occupation')
+    census_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200, help_text = 'Census Occupation Title')
+    bls_code = models.CharField(default = 'No Code', db_index = True, max_length = 100, help_text = 'Bureau of Labor Code')
+    bls_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200, help_text = 'Bureau of Labor occupation title')
+    ombsoc_code = models.CharField(default = 'No Code', db_index = True, max_length = 100, help_text = 'OMB Standard Occupation Classification code')
+    ombsoc_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200, help_text = 'OMB Standard Occupation Classification title')
+    cip_code = models.CharField(default = 'No Code', db_index = True, max_length = 100, help_text = 'CIP code')
+    cip_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200,help_text = 'CIP occupation')
 
     def __str__(self):
         return '[Census code: [{}]] [BLS code: [{}]] [CIP code: [{}]'.format(self.census_code, self.bls_code, self.cip_code)
 
 
 class AliasTitle(models.Model):
+    """
+    Some Crosswalk codes have duplicate occupation titles for a CIP code.  Store the alias title here
+    """
     BUREAU_TYPES = (
         (0, 'Census'),
         (1, 'Bureau of Labor'),
@@ -208,14 +215,14 @@ class AliasTitle(models.Model):
         (3, 'Education')
     )
 
-    cip = models.ForeignKey(CIP, related_name = 'aliases', related_query_name = 'alias')
+    crosswalk = models.ForeignKey(Crosswalk, related_name = 'aliases', related_query_name = 'alias')
     bureau_type = models.IntegerField(choices = BUREAU_TYPES, default = 3)
     alias_title = models.CharField(default = '', db_index = True, max_length = 200, help_text = 'Alias CIP occupation title')
 
 
-class Completions(models.Model):
+class Completion(models.Model):
     institution = models.ForeignKey(Institution, related_name = 'completions', related_query_name = 'completion')
-    cip = models.ForeignKey(CIP, related_name = 'cips', related_query_name = 'cip')
+    crosswalk = models.ForeignKey(Crosswalk, related_name = 'cips', related_query_name = 'cip')
     award_level = models.IntegerField(default = -1, help_text = 'Institution award level')
     total_awards = models.IntegerField(default = -1, help_text = 'Total awards for this program')
     total_awards_male = models.IntegerField(default = -1, help_text = 'Total awards of this program to men')

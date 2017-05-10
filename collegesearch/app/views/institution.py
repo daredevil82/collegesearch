@@ -1,7 +1,7 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 
-from app.models import Institution, Admissions, Tuition
+from app.models import Institution, Admission, Tuition
 from app.serializers import InstitutionSerializer, TuitionSerializer
 from app.views import BaseView
 

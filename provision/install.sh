@@ -115,4 +115,5 @@ mkvirtualenv -p "/usr/bin/python3.6" --clear -a "/home/vagrant/project" $PROJECT
 
 npm install -g create-react-app
 
-mkdir -p "/home/vagrant/project/logs"
+mkdir -p "/home/vagrant/project/logs" "/home/vagrant/project/$PROJECT_NAME/scripts"
+touch "/home/vagrant/project/$PROJECT_NAME/scripts/__init__.py"
