@@ -1,55 +1,40 @@
 from rest_framework import serializers
 from drf_extra_fields.geo_fields import PointField
-from drf_extra_fields.relations import PresentablePrimaryKeyRelatedField
-
-from app.models import Institution, Admission, Tuition, Completion, Crosswalk, AliasTitle
 
 
-class DynamicDepthSerializer(serializers.ModelSerializer):
-    """
-    A ModelSerializer that takes in an additional field to control the depth
-    of nested serialization
-    
-    Adapted from http://stackoverflow.com/a/37572944/214892
-    """
-
-    def __init__(self, *args, **kwargs):
-        nest = kwargs.pop('nest', None)
-
-        if nest and nest == True:
-            self.Meta.depth = 1
-
-        super().__init__(*args, **kwargs)
+from app.models import Institution, Admission, Tuition, Completion, Crosswalk
 
 
 class TuitionSerializer(serializers.ModelSerializer):
-
 
     class Meta:
         model = Tuition
         fields = '__all__'
         depth = 1
 
-class CIPSerializer(serializers.ModelSerializer):
+
+class CrosswalkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crosswalk
         fields = '__all__'
 
-class CompletionsSerializer(serializers.ModelSerializer):
-    cip = CIPSerializer()
+
+class CompletionSerializer(serializers.ModelSerializer):
+    crosswalk = CrosswalkSerializer()
 
     class Meta:
         model = Completion
         fields = '__all__'
 
-class AdmissionsSerializer(serializers.ModelSerializer):
+
+class AdmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Admission
         fields = '__all__'
 
 
-class InstitutionSerializer(serializers.ModelSerializer):
+class BaseInstitutionSerializer(serializers.ModelSerializer):
     location_region = serializers.CharField(source = 'get_location_region_display')
     sector = serializers.CharField(source = 'get_sector_display')
     level = serializers.CharField(source = 'get_level_display')
@@ -63,10 +48,6 @@ class InstitutionSerializer(serializers.ModelSerializer):
     financial_aid_url = serializers.URLField()
     application_url = serializers.URLField()
     net_price_url = serializers.URLField()
-    tuitions = TuitionSerializer(many = True)
-    admissions = AdmissionsSerializer()
-    completions = CompletionsSerializer(many = True)
-
 
     class Meta:
         model = Institution
@@ -74,7 +55,13 @@ class InstitutionSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class InstitutionSerializer(BaseInstitutionSerializer):
+    tuitions = TuitionSerializer(many = True)
+    admission = AdmissionSerializer()
+    completions = CompletionSerializer(many = True)
 
 
-
-
+class InstitutionPKSerializer(BaseInstitutionSerializer):
+    tuitions = serializers.PrimaryKeyRelatedField(many = True, read_only = True)
+    admission = serializers.PrimaryKeyRelatedField(read_only = True)
+    completions = serializers.PrimaryKeyRelatedField(many = True, read_only = True)

@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 
+
 class Institution(models.Model):
     # from hd2015
 
@@ -89,20 +90,29 @@ class Institution(models.Model):
     city = models.CharField(max_length = 50, default = '', help_text = 'City of institution')
     state = models.CharField(max_length = 3, default = '', help_text = 'State')
     ein = models.CharField(max_length = 20, default = '', help_text = 'IRS EIN number')
-    location_region = models.IntegerField(default = -3, choices = OBEREG_CHOICES, help_text = 'Bureau of Economic Analysis Region')
+    location_region = models.IntegerField(default = -3, choices = OBEREG_CHOICES,
+                                          help_text = 'Bureau of Economic Analysis Region')
     web_address = models.URLField(max_length = 255, default = '', help_text = 'Institution web address')
     admission_url = models.URLField(max_length = 255, default = '', help_text = 'Admission URL')
     financial_aid_url = models.URLField(max_length = 255, default = '', help_text = 'Financial Aid URL')
     application_url = models.URLField(max_length = 255, default = '', help_text = 'Application URL')
     net_price_url = models.URLField(max_length = 255, default = '', help_text = 'Net Price Calculator URL')
-    sector = models.IntegerField(default = 99, choices = SECTOR_CHOICES, help_text = 'Institution category joining level and control')
-    level = models.IntegerField(default = -3, choices = LEVEL_CHOICES, help_text = 'Classification of institution programs by year length')
-    control = models.IntegerField(default = -3, choices = CONTROL_CHOICES, help_text = 'Institution operated publicly or private')
-    highest_award = models.IntegerField(default = -3, choices = DEGREE_CHOICES, help_text = 'Highest offering award')
-    locale = models.IntegerField(default = -3, choices = LOCALE_CHOICES, help_text = 'Geographic status of a school based on surrounding population and distance')
+    sector = models.IntegerField(default = 99, choices = SECTOR_CHOICES,
+                                 help_text = 'Institution category joining level and control')
+    level = models.IntegerField(default = -3, choices = LEVEL_CHOICES,
+                                help_text = 'Classification of institution programs by year length')
+    control = models.IntegerField(default = -3, choices = CONTROL_CHOICES,
+                                  help_text = 'Institution operated publicly or private')
+    highest_award = models.IntegerField(default = -3, choices = DEGREE_CHOICES,
+                                        help_text = 'Highest offering award')
+    locale = models.IntegerField(default = -3, choices = LOCALE_CHOICES,
+                                 help_text = 'Geographic status of a school based on surrounding '
+                                             'population and distance')
     enrollment = models.IntegerField(default = -1, help_text = 'Total student enrollment')
-    system_type = models.IntegerField(default = -2, choices = SYSTEM_TYPE_CHOICES, help_text = 'Multi-institution or multi-campus organization')
-    system_name = models.CharField(max_length = 255, default = '', help_text = 'Name of multi-instition or multi-campus organization')
+    system_type = models.IntegerField(default = -2, choices = SYSTEM_TYPE_CHOICES,
+                                      help_text = 'Multi-institution or multi-campus organization')
+    system_name = models.CharField(max_length = 255, default = '',
+                                   help_text = 'Name of multi-instition or multi-campus organization')
     location = models.PointField(default = Point(0, 0))
 
     def __str__(self):
@@ -114,12 +124,16 @@ class BaseTuition(models.Model):
     academic_year_2013_books = models.IntegerField(default = -1, help_text = '2013 academic year books and supplies')
     academic_year_2014_books = models.IntegerField(default = -1, help_text = '2014 academic year books and supplies')
     academic_year_2015_books = models.IntegerField(default = -1, help_text = '2015 academic year books and supplies')
-    academic_year_2013_board = models.IntegerField(default = -1, help_text = '2013 academic year on-campus room and board')
-    academic_year_2014_board = models.IntegerField(default = -1, help_text = '2014 academic year on-campus room and board')
-    academic_year_2015_board = models.IntegerField(default = -1, help_text = '2015 academic year on-campus room and board')
+    academic_year_2013_board = models.IntegerField(default = -1,
+                                                   help_text = '2013 academic year on-campus room and board')
+    academic_year_2014_board = models.IntegerField(default = -1,
+                                                   help_text = '2014 academic year on-campus room and board')
+    academic_year_2015_board = models.IntegerField(default = -1,
+                                                   help_text = '2015 academic year on-campus room and board')
 
     class Meta:
         abstract = True
+
 
 class Tuition(BaseTuition):
     # from ic2015_ay
@@ -131,7 +145,8 @@ class Tuition(BaseTuition):
         (-1, 'Not Applicable')
     )
 
-    tuition_class = models.IntegerField(default = -1, choices = TUITION_CLASSES, help_text = 'Tuition rates of student origin')
+    tuition_class = models.IntegerField(default = -1, choices = TUITION_CLASSES,
+                                        help_text = 'Tuition rates of student origin')
     cost = models.IntegerField(default = -1, help_text = 'List price for annual tuition')
     fees = models.IntegerField(default = -1, help_text = 'List price for annual fees - full time enrollment')
     credit_hour = models.IntegerField(default = -1, help_text = 'List price of credit hour cost')
@@ -140,7 +155,7 @@ class Tuition(BaseTuition):
     academic_year_2015_cost = models.IntegerField(default = -1, help_text = '2015 academic year cost and fees')
 
     def __str__(self):
-        return '{} [class: [{}]] [list cost: [{}]]'.format(self.institution.name, self.tuition_class ,self.cost)
+        return '{} [class: [{}]] [list cost: [{}]]'.format(self.institution.name, self.tuition_class, self.cost)
 
 
 class Admission(models.Model):
@@ -192,16 +207,24 @@ class Crosswalk(models.Model):
     codes and occupation titles
     """
     census_code = models.IntegerField(default = -1, help_text = 'Census 2000 occupation code')
-    census_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200, help_text = 'Census Occupation Title')
-    bls_code = models.CharField(default = 'No Code', db_index = True, max_length = 100, help_text = 'Bureau of Labor Code')
-    bls_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200, help_text = 'Bureau of Labor occupation title')
-    ombsoc_code = models.CharField(default = 'No Code', db_index = True, max_length = 100, help_text = 'OMB Standard Occupation Classification code')
-    ombsoc_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200, help_text = 'OMB Standard Occupation Classification title')
+    census_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200,
+                                               help_text = 'Census Occupation Title')
+    bls_code = models.CharField(default = 'No Code', db_index = True, max_length = 100,
+                                help_text = 'Bureau of Labor Code')
+    bls_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200,
+                                            help_text = 'Bureau of Labor occupation title')
+    ombsoc_code = models.CharField(default = 'No Code', db_index = True, max_length = 100,
+                                   help_text = 'OMB Standard Occupation Classification code')
+    ombsoc_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200,
+                                               help_text = 'OMB Standard Occupation Classification title')
     cip_code = models.CharField(default = 'No Code', db_index = True, max_length = 100, help_text = 'CIP code')
-    cip_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200,help_text = 'CIP occupation')
+    cip_occupation_title = models.CharField(default = 'No Title', db_index = True, max_length = 200,
+                                            help_text = 'CIP occupation')
 
     def __str__(self):
-        return '[Census code: [{}]] [BLS code: [{}]] [CIP code: [{}]'.format(self.census_code, self.bls_code, self.cip_code)
+        return '[Census code: [{}]] [BLS code: [{}]] [CIP code: [{}]'.format(self.census_code,
+                                                                             self.bls_code,
+                                                                             self.cip_code)
 
 
 class AliasTitle(models.Model):
@@ -217,7 +240,8 @@ class AliasTitle(models.Model):
 
     crosswalk = models.ForeignKey(Crosswalk, related_name = 'aliases', related_query_name = 'alias')
     bureau_type = models.IntegerField(choices = BUREAU_TYPES, default = 3)
-    alias_title = models.CharField(default = '', db_index = True, max_length = 200, help_text = 'Alias CIP occupation title')
+    alias_title = models.CharField(default = '', db_index = True, max_length = 200,
+                                   help_text = 'Alias CIP occupation title')
 
 
 class Completion(models.Model):
