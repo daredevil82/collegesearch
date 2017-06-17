@@ -17,5 +17,5 @@ urlpatterns = [
         name = 'institution_tuition_list'),
     url(r'^api/tuition$', TuitionListView.as_view(), name = 'tuition_list'),
     url(r'^api/tuition/(?P<pk>[0-9]+)$', TuitionDetailView.as_view(), name = 'tuition_list'),
-    url(r'^', IndexView.as_view(), name = 'index_view')
+    url(r'^$', IndexView.as_view(), name = 'index_view')
 ]
