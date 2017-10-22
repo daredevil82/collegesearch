@@ -11,6 +11,7 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "collegesearch.settings")
 
+from config.settings._base import set_settings_module, get_secret
+set_settings_module(get_secret('django_settings_module'))
 application = get_wsgi_application()

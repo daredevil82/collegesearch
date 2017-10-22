@@ -2,8 +2,10 @@ import csv
 import os
 import zipfile
 
+from pathlib import Path
 from io import TextIOWrapper
 
+from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
@@ -41,7 +43,8 @@ class Command(BaseCommand):
                     print('[{}] institution has an error converting latitude or longitude'.format(row[0]))
                     location = Point(-180, 0)
 
-                institution = Institution.objects.create(unitid = self.safe_cast(row[header_indices[0]]),
+                # TODO use bulk_create here?
+                Institution.objects.create(unitid = self.safe_cast(row[header_indices[0]]),
                                                          name = row[header_indices[1]],
                                                          address = row[header_indices[2]],
                                                          city = row[header_indices[3]],
@@ -97,7 +100,8 @@ class Command(BaseCommand):
             for idx, row in enumerate(reader):
                 institution = Institution.objects.get(unitid = row[0])
 
-                district_tuition = Tuition.objects.create(institution = institution,
+                # TODO use bulk create here?
+                _ = Tuition.objects.create(institution = institution,
                                                           tuition_class = 0,
                                                           cost = self.safe_cast(row[district_indices[0]]),
                                                           fees = self.safe_cast(row[district_indices[1]]),
@@ -112,7 +116,7 @@ class Command(BaseCommand):
                                                           academic_year_2014_board = self.safe_cast(row[shared_indices[4]]),
                                                           academic_year_2015_board = self.safe_cast(row[shared_indices[5]]))
 
-                in_state_tuition = Tuition.objects.create(institution = institution,
+                _ = Tuition.objects.create(institution = institution,
                                                           tuition_class = 1,
                                                           cost = self.safe_cast(row[in_state_indices[0]]),
                                                           fees = self.safe_cast(row[in_state_indices[1]]),
@@ -127,7 +131,7 @@ class Command(BaseCommand):
                                                           academic_year_2014_board = self.safe_cast(row[shared_indices[4]]),
                                                           academic_year_2015_board = self.safe_cast(row[shared_indices[5]]))
 
-                out_state_tuition = Tuition.objects.create(institution = institution,
+                _ = Tuition.objects.create(institution = institution,
                                                            tuition_class = 2,
                                                            cost = self.safe_cast(row[out_state_indices[0]]),
                                                            fees = self.safe_cast(row[out_state_indices[1]]),
@@ -172,6 +176,8 @@ class Command(BaseCommand):
         try:
             for idx, row in enumerate(reader):
                 institution = Institution.objects.get(unitid = self.safe_cast(row[0]))
+
+                # TODO use bulk create
                 admissions = Admission.objects.create(institution = institution,
                                                       total_applicants = self.safe_cast(row[column_indices[0]]),
                                                       male_applicants = self.safe_cast(row[column_indices[1]]),
@@ -224,6 +230,7 @@ class Command(BaseCommand):
                     if created:
                         print('Created new CIP code [{}]'.format(row[1]))
 
+                    # TODO use bulk_create
                     completion = Completion.objects.create(institution = institution,
                                                            crosswalk = crosswalk,
                                                            award_level = self.safe_cast(row[3]),
@@ -254,9 +261,8 @@ class Command(BaseCommand):
             return 0
 
     def import_crosswalk(self):
-        current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        dataset_file = os.path.join(current_path, '../../../data/cip_occupational_crosswalk.csv')
-        with open(dataset_file, mode = 'r', encoding = 'latin-1') as f:
+        crosswalk_path = Path(settings.BASE_DIR, '../../data/cip_occupational_crosswalk.csv')
+        with open(crosswalk_path, mode = 'r', encoding = 'latin-1') as f:
             reader = csv.reader(f, delimiter=',', quotechar='"')
             next(reader)
 
@@ -285,11 +291,10 @@ class Command(BaseCommand):
 
     def import_data(self):
 
-        current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        dataset_path = os.path.join(current_path, '../../../data')
+        data_path = Path(settings.BASE_DIR, '../../data')
         for k, v in self.datasets.items():
             for dataset in v:
-                path = os.path.join(dataset_path, k, '2015/{}.zip'.format(dataset))
+                path = data_path.joinpath(k).joinpath('2015/{}.zip'.format(dataset))
                 with zipfile.ZipFile(path) as z:
                     reader = csv.reader(TextIOWrapper(z.open('{}.csv'.format(dataset.lower()), mode = 'r'), encoding = 'latin-1'))
                     dataset = dataset.lower()
@@ -309,12 +314,9 @@ class Command(BaseCommand):
         print('Tuition record count: [{}]'.format(Tuition.objects.all().count()))
         print('Completions record count: [{}]'.format(Completion.objects.all().count()))
 
-
     def handle(self, *args, **options):
         print('Clearing database')
         Institution.objects.all().delete()
         Crosswalk.objects.all().delete()
         self.import_crosswalk()
         self.import_data()
-
-

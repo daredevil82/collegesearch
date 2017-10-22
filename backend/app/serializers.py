@@ -34,22 +34,30 @@ class AdmissionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class BaseInstitutionSerializer(serializers.ModelSerializer):
+class InstitutionGeoSerializer(serializers.ModelSerializer):
     location_region = serializers.CharField(source = 'get_location_region_display')
+    locale = serializers.CharField(source = 'get_locale_display')
+    location = PointField()
+    web_address = serializers.URLField()
+
+
+    class Meta:
+        model = Institution
+        fields = ('pk', 'location_region', 'locale', 'location', 'name', 'web_address')
+        depth = 0
+
+class BaseInstitutionSerializer(InstitutionGeoSerializer):
     sector = serializers.CharField(source = 'get_sector_display')
     level = serializers.CharField(source = 'get_level_display')
     control = serializers.CharField(source = 'get_control_display')
     highest_award = serializers.CharField(source = 'get_highest_award_display')
-    locale = serializers.CharField(source = 'get_locale_display')
     system_type = serializers.CharField(source = 'get_system_type_display')
-    location = PointField()
-    web_address = serializers.URLField()
     admission_url = serializers.URLField()
     financial_aid_url = serializers.URLField()
     application_url = serializers.URLField()
     net_price_url = serializers.URLField()
 
-    class Meta:
+    class Meta(InstitutionGeoSerializer.Meta):
         model = Institution
         fields = '__all__'
         depth = 1

@@ -4,7 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from app.models import Institution, Completion, Tuition
-from app.serializers import InstitutionSerializer, InstitutionPKSerializer, CompletionSerializer, TuitionSerializer
+from app.serializers import InstitutionSerializer, InstitutionGeoSerializer, InstitutionPKSerializer, CompletionSerializer, TuitionSerializer
 
 
 class InstitutionListView(ListAPIView):
@@ -14,31 +14,43 @@ class InstitutionListView(ListAPIView):
 
     def get_queryset(self):
         """
-        Check query params if a name search is necessary.  Return full or filtered queryset depending on existence
-        of 'search' query param
+        Check query params if a name search is necessary.
+
+        Return full or filtered queryset depending on existence
+        of 'search' or 'geo' query param
+
         :return: 
         """
         term = self.request.query_params.get('search', None)
+        geo = self.request.query_params.get('geo', False)
 
         if term:
             if len(term) >= 3:
                 return Institution.objects.filter(name__icontains = term).order_by('name')
             raise ValidationError('search query must be at least three characters long')
 
-        return Institution.objects.all().order_by('name')
+        if geo:
+            self.pagination_class = None
+            return Institution.objects.all().order_by('name')
 
     def get_serializer_class(self):
         """
         Institution data is a big nested object, so by default a primary key serializer is used for related objects.
-        If nested data is required, a 'nested=true' query param is part of the URL.
+        If full data is required, a 'full=true' query param is part of the URL.
+
+        If the request is just for geographic information, then the 'geo=true' query param should be set.
         
         Based on existence of nested term and associated 'true' value, use either nested serializer or PK serializer
         :return: 
         """
-        nested_institution_data = self.request.query_params.get('nested', None)
+        full_data = self.request.query_params.get('full', False)
+        geo_serializer = self.request.query_params.get('geo', False)
 
-        if nested_institution_data and nested_institution_data == 'true':
+        if full_data:
             return InstitutionSerializer
+
+        if geo_serializer:
+            return InstitutionGeoSerializer
 
         return InstitutionPKSerializer
 

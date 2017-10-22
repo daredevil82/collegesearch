@@ -13,6 +13,7 @@ class CrosswalkListView(ListAPIView):
     queryset = Crosswalk.objects.all().prefetch_related('aliases').order_by('cip_code')
     pagination_class = PageNumberPagination
     serializer_class = CrosswalkSerializer
+    ordering = ['cip_code']
 
     def get_queryset(self):
         term = self.request.query_params.get('search', None)

@@ -113,7 +113,7 @@ class Institution(models.Model):
                                       help_text = 'Multi-institution or multi-campus organization')
     system_name = models.CharField(max_length = 255, default = '',
                                    help_text = 'Name of multi-instition or multi-campus organization')
-    location = models.PointField(default = Point(0, 0))
+    location = models.PointField(default = Point(0, 0), spatial_index = True)
 
     def __str__(self):
         return 'Name: [{}] State: [{}]'.format(self.name, self.state)

@@ -1,0 +1,23 @@
+.clusterMarker {
+    width: 30px;
+    height: 30px;,
+    border-radius: 50%;
+    background-color: #51D5A0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+    border: 2px solid #56C498;
+}
+
+.marker {
+    width: 30px;
+    height: 30px;
+    background-color: #E0E0E0;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #C9C9C9;
+    color: black;
+}
