@@ -1,3 +1,8 @@
 .idea
 .vagrant
+logs
 collegesearch/collegesearch/__pycache__
+collegesearch/collegesearch/settings/local.py
+
+# result of ./manage.py dumpscript > scripts/data.py.  Far too large to include in the repository
+collegesearch/scripts/data.py
